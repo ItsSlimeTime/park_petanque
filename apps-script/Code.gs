@@ -101,8 +101,9 @@ function createGame(body) {
   const sheet = getSheet();
   const gameId = Utilities.getUuid();
   const now = new Date().toISOString();
+  const timestamp = body.playedAt || now; // lets a past game be logged with its real date
   const row = [
-    gameId, now, now,
+    gameId, timestamp, timestamp,
     body.team1Name || 'Team A', (body.team1Players || []).join('|'),
     body.team2Name || 'Team B', (body.team2Players || []).join('|'),
     0, 0, 'in_progress', '',
@@ -115,8 +116,8 @@ function saveGame(body) {
   const sheet = getSheet();
   const idx = findRowIndexByGameId(sheet, body.gameId);
   if (idx === -1) throw new Error('Game not found: ' + body.gameId);
-  const now = new Date().toISOString();
-  sheet.getRange(idx, 3).setValue(now); // updatedAt
+  const updatedAt = body.updatedAt || new Date().toISOString(); // allows a past game's real date to stick
+  sheet.getRange(idx, 3).setValue(updatedAt);
   sheet.getRange(idx, 8).setValue(Number(body.team1Score) || 0);
   sheet.getRange(idx, 9).setValue(Number(body.team2Score) || 0);
   sheet.getRange(idx, 10).setValue(body.status || 'in_progress');

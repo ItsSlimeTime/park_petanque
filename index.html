@@ -23,6 +23,7 @@
     </div>
     <button class="btn btn-primary btn-big" id="newGameBtn">＋ New Game</button>
     <button class="btn btn-secondary btn-big" id="leaderboardBtn">🏆 Leaderboard &amp; History</button>
+    <button class="btn btn-secondary" id="logPastGameBtn">🗓 Log a Past Game</button>
     <button class="btn btn-ghost" id="settingsBtn">⚙ Settings</button>
     <p class="hint">2v2 · each player throws 2 boules · first team to 13 wins</p>
   </section>
@@ -80,7 +81,29 @@
       </div>
     </div>
 
-    <button class="btn btn-primary btn-big" id="recordEndBtn">Record End Result</button>
+    <p class="hint">After each end, tap how many points the <strong>winning</strong> team scored that end (1–4). It's added to their running total — first to 13 wins.</p>
+
+    <div class="end-controls">
+      <div class="end-controls-team">
+        <div class="ec-label ec-team-a" id="ecTeam1Label">Team A</div>
+        <div class="points-grid">
+          <button class="btn btn-point" data-team="team1" data-pts="1">1</button>
+          <button class="btn btn-point" data-team="team1" data-pts="2">2</button>
+          <button class="btn btn-point" data-team="team1" data-pts="3">3</button>
+          <button class="btn btn-point" data-team="team1" data-pts="4">4</button>
+        </div>
+      </div>
+      <div class="end-controls-team">
+        <div class="ec-label ec-team-b" id="ecTeam2Label">Team B</div>
+        <div class="points-grid">
+          <button class="btn btn-point" data-team="team2" data-pts="1">1</button>
+          <button class="btn btn-point" data-team="team2" data-pts="2">2</button>
+          <button class="btn btn-point" data-team="team2" data-pts="3">3</button>
+          <button class="btn btn-point" data-team="team2" data-pts="4">4</button>
+        </div>
+      </div>
+    </div>
+
     <button class="btn btn-secondary" id="undoBtn" disabled>↺ Undo Last End</button>
 
     <div id="endHistory" class="end-history"></div>
@@ -88,27 +111,30 @@
     <button class="btn btn-ghost btn-danger" id="cancelGameBtn">Cancel Game</button>
   </section>
 
-  <!-- WHO WON THE END -->
-  <section id="screen-endpick" class="screen">
-    <h2>Which team won this end?</h2>
-    <div class="pick-teams">
-      <button class="btn btn-pick team-a" id="pickTeam1Btn"></button>
-      <button class="btn btn-pick team-b" id="pickTeam2Btn"></button>
-    </div>
-    <button class="btn btn-ghost" id="endPickBackBtn">← Back</button>
-  </section>
-
-  <!-- HOW MANY POINTS -->
-  <section id="screen-endpoints" class="screen">
-    <h2>How many points for <span id="endPointsTeamName"></span>?</h2>
-    <p class="hint">Max 4 (2 players × 2 boules each)</p>
-    <div class="points-grid">
-      <button class="btn btn-point" data-pts="1">1</button>
-      <button class="btn btn-point" data-pts="2">2</button>
-      <button class="btn btn-point" data-pts="3">3</button>
-      <button class="btn btn-point" data-pts="4">4</button>
-    </div>
-    <button class="btn btn-ghost" id="endPointsBackBtn">← Back</button>
+  <!-- LOG PAST GAME -->
+  <section id="screen-pastgame" class="screen">
+    <h2>Log a Past Game</h2>
+    <p class="hint">For a game you already finished playing — enter the final score directly.</p>
+    <form id="pastGameForm">
+      <fieldset class="team-fieldset team-a">
+        <legend>Team A</legend>
+        <label class="field"><span>Team name (optional)</span><input type="text" id="pgTeam1Name" placeholder="e.g. The Boules Brothers" maxlength="40"></label>
+        <label class="field"><span>Player 1</span><input type="text" id="pgTeam1Player1" placeholder="Name" maxlength="30" required></label>
+        <label class="field"><span>Player 2</span><input type="text" id="pgTeam1Player2" placeholder="Name" maxlength="30" required></label>
+        <label class="field"><span>Final score</span><input type="number" id="pgTeam1Score" min="0" max="13" required></label>
+      </fieldset>
+      <fieldset class="team-fieldset team-b">
+        <legend>Team B</legend>
+        <label class="field"><span>Team name (optional)</span><input type="text" id="pgTeam2Name" placeholder="e.g. The Boules Brothers" maxlength="40"></label>
+        <label class="field"><span>Player 1</span><input type="text" id="pgTeam2Player1" placeholder="Name" maxlength="30" required></label>
+        <label class="field"><span>Player 2</span><input type="text" id="pgTeam2Player2" placeholder="Name" maxlength="30" required></label>
+        <label class="field"><span>Final score</span><input type="number" id="pgTeam2Score" min="0" max="13" required></label>
+      </fieldset>
+      <label class="field"><span>When was this played? (optional)</span><input type="date" id="pgDate"></label>
+      <button type="submit" class="btn btn-primary btn-big">Save Past Game</button>
+    </form>
+    <p id="pastGameMsg" class="msg" hidden></p>
+    <button class="btn btn-ghost" id="pastGameBackBtn">← Back</button>
   </section>
 
   <!-- GAME OVER -->

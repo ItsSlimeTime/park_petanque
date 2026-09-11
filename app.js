@@ -10,7 +10,6 @@ const GAME_KEY = 'petanque_current_game_v1';
 /* ---------- State ---------- */
 let config = loadConfig();
 let currentGame = loadCurrentGame();
-let pendingEndTeam = null; // 'team1' | 'team2' while picking points
 let leaderboardCache = null;
 
 /* ---------- Storage helpers ---------- */
@@ -133,6 +132,8 @@ function renderScoreScreen() {
   document.getElementById('scoreTeam2Players').textContent = currentGame.team2Players.join(' & ');
   document.getElementById('scoreTeam1Score').textContent = currentGame.team1Score;
   document.getElementById('scoreTeam2Score').textContent = currentGame.team2Score;
+  document.getElementById('ecTeam1Label').textContent = currentGame.team1Name;
+  document.getElementById('ecTeam2Label').textContent = currentGame.team2Name;
   document.getElementById('undoBtn').disabled = currentGame.ends.length === 0;
 
   const hist = document.getElementById('endHistory');
@@ -147,25 +148,11 @@ function renderScoreScreen() {
   });
 }
 
-function openEndPick() {
-  document.getElementById('pickTeam1Btn').textContent = currentGame.team1Name;
-  document.getElementById('pickTeam2Btn').textContent = currentGame.team2Name;
-  showScreen('screen-endpick');
-}
-
-function openEndPoints(team) {
-  pendingEndTeam = team;
-  const teamName = team === 'team1' ? currentGame.team1Name : currentGame.team2Name;
-  document.getElementById('endPointsTeamName').textContent = teamName;
-  showScreen('screen-endpoints');
-}
-
-function confirmEndPoints(points) {
-  if (!currentGame || !pendingEndTeam) return;
-  const scoreKey = pendingEndTeam === 'team1' ? 'team1Score' : 'team2Score';
-  currentGame.ends.push({ team: pendingEndTeam, points });
+function recordEnd(team, points) {
+  if (!currentGame) return;
+  const scoreKey = team === 'team1' ? 'team1Score' : 'team2Score';
+  currentGame.ends.push({ team, points });
   currentGame[scoreKey] = Math.min(WIN_SCORE, currentGame[scoreKey] + points);
-  pendingEndTeam = null;
 
   const winner = currentGame.team1Score >= WIN_SCORE ? 'team1'
     : currentGame.team2Score >= WIN_SCORE ? 'team2' : null;
@@ -182,7 +169,6 @@ function confirmEndPoints(points) {
     showScreen('screen-gameover');
   } else {
     renderScoreScreen();
-    showScreen('screen-score');
   }
 }
 
@@ -320,6 +306,69 @@ function renderLeaderboard(games) {
     });
 }
 
+/* ---------- Log past game ---------- */
+function handlePastGameSubmit(e) {
+  e.preventDefault();
+  const msg = document.getElementById('pastGameMsg');
+  const t1p1 = document.getElementById('pgTeam1Player1').value.trim();
+  const t1p2 = document.getElementById('pgTeam1Player2').value.trim();
+  const t2p1 = document.getElementById('pgTeam2Player1').value.trim();
+  const t2p2 = document.getElementById('pgTeam2Player2').value.trim();
+  const t1name = document.getElementById('pgTeam1Name').value.trim() || [t1p1, t1p2].filter(Boolean).join(' & ') || 'Team A';
+  const t2name = document.getElementById('pgTeam2Name').value.trim() || [t2p1, t2p2].filter(Boolean).join(' & ') || 'Team B';
+  const t1score = parseInt(document.getElementById('pgTeam1Score').value, 10);
+  const t2score = parseInt(document.getElementById('pgTeam2Score').value, 10);
+  const playedDate = document.getElementById('pgDate').value; // yyyy-mm-dd or ''
+
+  if (Number.isNaN(t1score) || Number.isNaN(t2score) || t1score < 0 || t2score < 0 || t1score > WIN_SCORE || t2score > WIN_SCORE) {
+    msg.hidden = false; msg.className = 'msg msg-error';
+    msg.textContent = `Scores must be between 0 and ${WIN_SCORE}.`;
+    return;
+  }
+  if (t1score === t2score) {
+    msg.hidden = false; msg.className = 'msg msg-error';
+    msg.textContent = 'Scores can\'t be tied — pétanque has no draws.';
+    return;
+  }
+  if (!config.sheetUrl) {
+    msg.hidden = false; msg.className = 'msg msg-error';
+    msg.textContent = 'Connect a Google Sheet in Settings first — past games are saved there, not on this phone.';
+    return;
+  }
+
+  const winner = t1score > t2score ? 'team1' : 'team2';
+  msg.hidden = false; msg.className = 'msg';
+  msg.textContent = 'Saving…';
+
+  apiPost('createGame', {
+    team1Name: t1name, team1Players: [t1p1, t1p2],
+    team2Name: t2name, team2Players: [t2p1, t2p2],
+    playedAt: playedDate ? new Date(playedDate).toISOString() : undefined,
+  }).then((res) => {
+    if (!res.ok || !res.game || !res.game.gameId) {
+      msg.className = 'msg msg-error';
+      msg.textContent = 'Could not save: ' + (res.error || 'unknown error');
+      return;
+    }
+    return apiPost('saveGame', {
+      gameId: res.game.gameId,
+      team1Score: t1score, team2Score: t2score,
+      status: 'finished', winner,
+      updatedAt: playedDate ? new Date(playedDate).toISOString() : undefined,
+    }).then((res2) => {
+      if (!res2.ok) {
+        msg.className = 'msg msg-error';
+        msg.textContent = 'Could not save score: ' + (res2.error || 'unknown error');
+        return;
+      }
+      msg.className = 'msg msg-ok';
+      msg.textContent = 'Saved!';
+      document.getElementById('pastGameForm').reset();
+      setTimeout(() => { msg.hidden = true; showScreen('screen-leaderboard'); loadLeaderboard(); }, 600);
+    });
+  });
+}
+
 /* ---------- Settings ---------- */
 function renderSettings() {
   document.getElementById('sheetUrlInput').value = config.sheetUrl || '';
@@ -371,18 +420,19 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('newGameForm').addEventListener('submit', handleNewGameSubmit);
 
   document.getElementById('resumeGameBtn').addEventListener('click', () => { renderScoreScreen(); showScreen('screen-score'); });
-  document.getElementById('recordEndBtn').addEventListener('click', openEndPick);
   document.getElementById('undoBtn').addEventListener('click', undoLastEnd);
   document.getElementById('cancelGameBtn').addEventListener('click', cancelGame);
 
-  document.getElementById('pickTeam1Btn').addEventListener('click', () => openEndPoints('team1'));
-  document.getElementById('pickTeam2Btn').addEventListener('click', () => openEndPoints('team2'));
-  document.getElementById('endPickBackBtn').addEventListener('click', () => showScreen('screen-score'));
-
-  document.querySelectorAll('.btn-point').forEach((btn) => {
-    btn.addEventListener('click', () => confirmEndPoints(parseInt(btn.dataset.pts, 10)));
+  document.querySelectorAll('#screen-score .btn-point').forEach((btn) => {
+    btn.addEventListener('click', () => recordEnd(btn.dataset.team, parseInt(btn.dataset.pts, 10)));
   });
-  document.getElementById('endPointsBackBtn').addEventListener('click', () => showScreen('screen-endpick'));
+
+  document.getElementById('logPastGameBtn').addEventListener('click', () => {
+    document.getElementById('pastGameMsg').hidden = true;
+    showScreen('screen-pastgame');
+  });
+  document.getElementById('pastGameBackBtn').addEventListener('click', goHome);
+  document.getElementById('pastGameForm').addEventListener('submit', handlePastGameSubmit);
 
   document.getElementById('afterGameNewBtn').addEventListener('click', () => { finishAndReset(); showScreen('screen-newgame'); });
   document.getElementById('afterGameLeaderboardBtn').addEventListener('click', () => { finishAndReset(); showScreen('screen-leaderboard'); loadLeaderboard(); });
