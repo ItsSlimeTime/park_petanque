@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f6b3a">
+<title>Park Pétanque</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand" id="homeLink">🎯 Park Pétanque</div>
+  <div class="syncStatus" id="syncStatus" title="Sync status">●</div>
+</header>
+
+<main id="app">
+
+  <!-- HOME -->
+  <section id="screen-home" class="screen">
+    <div id="resumeBox" hidden>
+      <button class="btn btn-primary btn-big" id="resumeGameBtn">▶ Resume current game</button>
+    </div>
+    <button class="btn btn-primary btn-big" id="newGameBtn">＋ New Game</button>
+    <button class="btn btn-secondary btn-big" id="leaderboardBtn">🏆 Leaderboard &amp; History</button>
+    <button class="btn btn-ghost" id="settingsBtn">⚙ Settings</button>
+    <p class="hint">2v2 · each player throws 2 boules · first team to 13 wins</p>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="screen-settings" class="screen">
+    <h2>Settings</h2>
+    <label class="field">
+      <span>Google Sheet Web App URL</span>
+      <input type="url" id="sheetUrlInput" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off" autocapitalize="off" spellcheck="false">
+    </label>
+    <div class="row">
+      <button class="btn btn-primary" id="saveSettingsBtn">Save</button>
+      <button class="btn btn-secondary" id="testConnectionBtn">Test connection</button>
+    </div>
+    <p id="settingsMsg" class="msg" hidden></p>
+    <p class="hint">Don't have this URL yet? See <code>SETUP.md</code> in the repo — one-time setup, a few taps, no computer needed.</p>
+    <button class="btn btn-ghost" id="settingsBackBtn">← Back</button>
+  </section>
+
+  <!-- NEW GAME -->
+  <section id="screen-newgame" class="screen">
+    <h2>New Game</h2>
+    <form id="newGameForm">
+      <fieldset class="team-fieldset team-a">
+        <legend>Team A</legend>
+        <label class="field"><span>Team name (optional)</span><input type="text" id="team1Name" placeholder="Team A" maxlength="40"></label>
+        <label class="field"><span>Player 1</span><input type="text" id="team1Player1" placeholder="Name" maxlength="30" required></label>
+        <label class="field"><span>Player 2</span><input type="text" id="team1Player2" placeholder="Name" maxlength="30" required></label>
+      </fieldset>
+      <fieldset class="team-fieldset team-b">
+        <legend>Team B</legend>
+        <label class="field"><span>Team name (optional)</span><input type="text" id="team2Name" placeholder="Team B" maxlength="40"></label>
+        <label class="field"><span>Player 1</span><input type="text" id="team2Player1" placeholder="Name" maxlength="30" required></label>
+        <label class="field"><span>Player 2</span><input type="text" id="team2Player2" placeholder="Name" maxlength="30" required></label>
+      </fieldset>
+      <button type="submit" class="btn btn-primary btn-big">Start Game</button>
+    </form>
+    <button class="btn btn-ghost" id="newGameBackBtn">← Back</button>
+  </section>
+
+  <!-- SCORE -->
+  <section id="screen-score" class="screen">
+    <div class="scoreboard">
+      <div class="team-score team-a">
+        <div class="team-name" id="scoreTeam1Name">Team A</div>
+        <div class="team-players" id="scoreTeam1Players"></div>
+        <div class="score-num" id="scoreTeam1Score">0</div>
+      </div>
+      <div class="vs">–</div>
+      <div class="team-score team-b">
+        <div class="team-name" id="scoreTeam2Name">Team B</div>
+        <div class="team-players" id="scoreTeam2Players"></div>
+        <div class="score-num" id="scoreTeam2Score">0</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-big" id="recordEndBtn">Record End Result</button>
+    <button class="btn btn-secondary" id="undoBtn" disabled>↺ Undo Last End</button>
+
+    <div id="endHistory" class="end-history"></div>
+
+    <button class="btn btn-ghost btn-danger" id="cancelGameBtn">Cancel Game</button>
+  </section>
+
+  <!-- WHO WON THE END -->
+  <section id="screen-endpick" class="screen">
+    <h2>Which team won this end?</h2>
+    <div class="pick-teams">
+      <button class="btn btn-pick team-a" id="pickTeam1Btn"></button>
+      <button class="btn btn-pick team-b" id="pickTeam2Btn"></button>
+    </div>
+    <button class="btn btn-ghost" id="endPickBackBtn">← Back</button>
+  </section>
+
+  <!-- HOW MANY POINTS -->
+  <section id="screen-endpoints" class="screen">
+    <h2>How many points for <span id="endPointsTeamName"></span>?</h2>
+    <p class="hint">Max 4 (2 players × 2 boules each)</p>
+    <div class="points-grid">
+      <button class="btn btn-point" data-pts="1">1</button>
+      <button class="btn btn-point" data-pts="2">2</button>
+      <button class="btn btn-point" data-pts="3">3</button>
+      <button class="btn btn-point" data-pts="4">4</button>
+    </div>
+    <button class="btn btn-ghost" id="endPointsBackBtn">← Back</button>
+  </section>
+
+  <!-- GAME OVER -->
+  <section id="screen-gameover" class="screen">
+    <h2 class="winner-banner" id="winnerBanner">🏆 Team A wins!</h2>
+    <div class="final-score" id="finalScore">13 – 7</div>
+    <div class="sync-note" id="gameOverSyncNote"></div>
+    <button class="btn btn-primary btn-big" id="afterGameNewBtn">＋ New Game</button>
+    <button class="btn btn-secondary btn-big" id="afterGameLeaderboardBtn">🏆 Leaderboard</button>
+    <button class="btn btn-ghost" id="afterGameHomeBtn">← Home</button>
+  </section>
+
+  <!-- LEADERBOARD -->
+  <section id="screen-leaderboard" class="screen">
+    <div class="lb-header">
+      <h2>Leaderboard</h2>
+      <button class="btn btn-icon" id="refreshLbBtn" title="Refresh">⟳</button>
+    </div>
+    <div id="lbLoading" class="msg">Loading…</div>
+    <div id="lbError" class="msg msg-error" hidden></div>
+    <table class="lb-table" id="lbTable" hidden>
+      <thead><tr><th>Player</th><th>W</th><th>G</th><th>Win%</th></tr></thead>
+      <tbody id="lbTableBody"></tbody>
+    </table>
+
+    <h3>Recent Games</h3>
+    <div id="gameHistoryList" class="game-history-list"></div>
+
+    <button class="btn btn-ghost" id="lbBackBtn">← Back</button>
+  </section>
+
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
