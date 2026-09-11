@@ -90,8 +90,8 @@ function handleNewGameSubmit(e) {
   const t1p2 = document.getElementById('team1Player2').value.trim();
   const t2p1 = document.getElementById('team2Player1').value.trim();
   const t2p2 = document.getElementById('team2Player2').value.trim();
-  const t1name = document.getElementById('team1Name').value.trim() || 'Team A';
-  const t2name = document.getElementById('team2Name').value.trim() || 'Team B';
+  const t1name = document.getElementById('team1Name').value.trim() || [t1p1, t1p2].filter(Boolean).join(' & ') || 'Team A';
+  const t2name = document.getElementById('team2Name').value.trim() || [t2p1, t2p2].filter(Boolean).join(' & ') || 'Team B';
 
   currentGame = {
     gameId: null, // assigned once synced; local id used meanwhile
