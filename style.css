@@ -158,30 +158,36 @@ h3 { margin: 1.2rem 0 0.4rem; }
   border: 1px solid var(--border);
 }
 
-.pick-teams { display: flex; flex-direction: column; gap: 0.8rem; }
-.btn-pick {
-  padding: 1.4rem;
-  font-size: 1.3rem;
-  border-radius: 14px;
-  color: #fff;
-  border: none;
+.end-controls {
+  display: flex;
+  gap: 0.7rem;
 }
-.btn-pick.team-a { background: var(--team-a); }
-.btn-pick.team-b { background: var(--team-b); }
+.end-controls-team { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
+.ec-label {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0.3rem;
+  border-radius: 8px;
+}
+.ec-label.ec-team-a { background: var(--team-a-soft); color: var(--team-a); }
+.ec-label.ec-team-b { background: var(--team-b-soft); color: var(--team-b); }
 
 .points-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.6rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
 }
 .btn-point {
   aspect-ratio: 1;
-  font-size: 1.6rem;
-  border-radius: 14px;
+  font-size: 1.5rem;
+  border-radius: 12px;
   background: var(--accent-soft);
   color: var(--accent);
   border: 2px solid var(--accent);
 }
+.end-controls-team:first-child .btn-point { border-color: var(--team-a); color: var(--team-a); background: var(--team-a-soft); }
+.end-controls-team:last-child .btn-point { border-color: var(--team-b); color: var(--team-b); background: var(--team-b-soft); }
 .btn-point:active { background: var(--accent); color: #fff; }
 
 .winner-banner { text-align: center; font-size: 1.6rem; }
